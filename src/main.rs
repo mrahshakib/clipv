@@ -25,16 +25,16 @@ fn main() -> iced::Result {
 
     if is_toggle {
         if try_send_toggle_ipc() {
-            println!("Clipboard Manager: Toggled running instance via IPC.");
+            println!("clipv: Toggled running instance via IPC.");
             return Ok(());
         }
         // If not running, continue and launch the application
     } else if try_send_toggle_ipc() {
         if is_daemon {
-            println!("Clipboard Manager: Daemon is already running in background.");
+            println!("clipv: Daemon is already running in background.");
             return Ok(());
         }
-        println!("Clipboard Manager: Already running. Toggled existing window.");
+        println!("clipv: Already running. Toggled existing window.");
         return Ok(());
     }
 

@@ -15,9 +15,9 @@ use std::time::{Duration, Instant};
 /// Returns the standard runtime socket path for IPC toggling.
 pub fn get_socket_path() -> PathBuf {
     if let Ok(runtime_dir) = std::env::var("XDG_RUNTIME_DIR") {
-        PathBuf::from(runtime_dir).join("clipboard-manager.sock")
+        PathBuf::from(runtime_dir).join("clipv.sock")
     } else {
-        PathBuf::from("/tmp/clipboard-manager.sock")
+        PathBuf::from("/tmp/clipv.sock")
     }
 }
 
@@ -28,6 +28,18 @@ pub fn try_send_toggle_ipc() -> bool {
         let _ = stream.write_all(b"toggle\n");
         return true;
     }
+
+    // Backward-compatibility check for legacy socket name
+    let legacy_socket = if let Ok(runtime_dir) = std::env::var("XDG_RUNTIME_DIR") {
+        PathBuf::from(runtime_dir).join("clipboard-manager.sock")
+    } else {
+        PathBuf::from("/tmp/clipboard-manager.sock")
+    };
+    if let Ok(mut stream) = UnixStream::connect(&legacy_socket) {
+        let _ = stream.write_all(b"toggle\n");
+        return true;
+    }
+
     false
 }
 

@@ -120,17 +120,25 @@ impl Database {
         Ok(())
     }
 
-    /// Initializes the database in standard XDG local share directory (`~/.local/share/clipboard-manager`).
+    /// Initializes the database in standard XDG local share directory (`~/.local/share/clipv`).
     pub fn new() -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
-        let base_dir = dirs::data_local_dir()
-            .unwrap_or_else(|| PathBuf::from("."))
-            .join("clipboard-manager");
+        let local_data = dirs::data_local_dir().unwrap_or_else(|| PathBuf::from("."));
+        let base_dir = local_data.join("clipv");
+        let legacy_dir = local_data.join("clipboard-manager");
 
-        fs::create_dir_all(&base_dir)?;
-        let images_dir = base_dir.join("images");
+        let target_dir = if base_dir.exists() {
+            base_dir
+        } else if legacy_dir.exists() {
+            legacy_dir
+        } else {
+            base_dir
+        };
+
+        fs::create_dir_all(&target_dir)?;
+        let images_dir = target_dir.join("images");
         fs::create_dir_all(&images_dir)?;
 
-        let db_path = base_dir.join("history.db");
+        let db_path = target_dir.join("history.db");
         let conn = Connection::open(&db_path)?;
         Self::init_schema(&conn)?;
 

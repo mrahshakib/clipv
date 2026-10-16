@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build & Release Linux Binary
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libx11-dev libxcb1-dev libxext-dev libxinerama-dev libxcursor-dev libxkbcommon-dev
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build release binary
+        run: cargo build --release --locked
+
+      - name: Prepare release archive
+        run: |
+          mkdir -p clipv-release
+          cp target/release/clipv clipv-release/
+          cp clipv.desktop clipv-release/
+          cp install.sh clipv-release/
+          cp uninstall.sh clipv-release/
+          cp README.md clipv-release/
+          cp LICENSE clipv-release/
+          chmod +x clipv-release/clipv clipv-release/install.sh clipv-release/uninstall.sh
+          tar -czvf clipv-linux-x86_64.tar.gz -C clipv-release .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: clipv-linux-x86_64.tar.gz
+          draft: false
+          prerelease: false
+          generate_release_notes: true

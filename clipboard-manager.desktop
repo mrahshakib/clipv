@@ -2,7 +2,7 @@
 Type=Application
 Name=Clipboard Manager
 Comment=Windows 11 styled modern Linux clipboard history manager
-Exec=/home/shakib/Desktop/clipboard/target/release/clipboard-manager --daemon
+Exec=clipv --daemon
 Icon=edit-paste
 Terminal=false
 Categories=Utility;Application;

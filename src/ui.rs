@@ -32,17 +32,31 @@ const ACCENT_COLOR: Color = Color::from_rgb(0.0, 0.47, 0.83);     // #0078d4
 const TEXT_MUTED: Color = Color::from_rgb(0.65, 0.65, 0.65);      // #a6a6a6
 const PINNED_BADGE: Color = Color::from_rgb(0.10, 0.35, 0.60);    // Pinned highlight
 
-/// Reliably forces X11 / Cinnamon window manager to activate and focus the Clipboard History window.
+/// Reliably forces X11 / Cinnamon window manager to activate and focus the Clipboard History window,
+/// while keeping it hidden from the taskbar, dock, and Alt+Tab window pager.
 pub fn activate_window_focus() {
     std::thread::spawn(|| {
-        std::thread::sleep(Duration::from_millis(25));
-        let _ = std::process::Command::new("wmctrl")
-            .args(["-a", "Clipboard History"])
-            .output();
-        std::thread::sleep(Duration::from_millis(65));
-        let _ = std::process::Command::new("wmctrl")
-            .args(["-a", "Clipboard History"])
-            .output();
+        for delay in [15, 50, 100] {
+            std::thread::sleep(Duration::from_millis(delay));
+            let _ = std::process::Command::new("wmctrl")
+                .args(["-r", "Clipboard History", "-b", "add,skip_taskbar,skip_pager"])
+                .output();
+            let _ = std::process::Command::new("xprop")
+                .args([
+                    "-name",
+                    "Clipboard History",
+                    "-f",
+                    "_NET_WM_WINDOW_TYPE",
+                    "32a",
+                    "-set",
+                    "_NET_WM_WINDOW_TYPE",
+                    "_NET_WM_WINDOW_TYPE_UTILITY",
+                ])
+                .output();
+            let _ = std::process::Command::new("wmctrl")
+                .args(["-a", "Clipboard History"])
+                .output();
+        }
     });
 }
 

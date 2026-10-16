@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=clipv
+GenericName=Clipboard Manager
+Comment=Modern Windows 11 Fluent styled clipboard manager for Linux
+Exec=clipv --daemon
+Icon=edit-paste
+Terminal=false
+Categories=Utility;Application;
+StartupNotify=false
+X-GNOME-Autostart-enabled=true
+X-Cinnamon-Autostart-enabled=true
+NoDisplay=false

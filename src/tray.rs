@@ -19,7 +19,7 @@ pub struct ClipboardTray {
 
 impl Tray for ClipboardTray {
     fn id(&self) -> String {
-        "clipboard-manager".into()
+        "clipv".into()
     }
 
     fn title(&self) -> String {

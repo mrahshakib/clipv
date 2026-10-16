@@ -1,8 +1,15 @@
 [package]
-name = "clipboard-manager"
+name = "clipv"
 version = "0.1.0"
 edition = "2021"
-description = "Windows 11 styled high-performance Linux clipboard manager"
+authors = ["Shakib <https://github.com/mrahshakib>"]
+description = "Modern Windows 11 Fluent styled clipboard manager for Linux"
+license = "MIT"
+repository = "https://github.com/mrahshakib/clipv"
+homepage = "https://github.com/mrahshakib/clipv"
+readme = "README.md"
+keywords = ["clipboard", "clipboard-manager", "windows-11", "linux", "iced"]
+categories = ["command-line-utilities", "gui"]
 
 [dependencies]
 iced = { version = "0.14.0", default-features = false, features = ["tiny-skia", "image", "svg", "advanced", "tokio", "x11", "wayland", "crisp", "web-colors"] }
