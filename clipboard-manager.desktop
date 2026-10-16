@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Clipboard Manager
+Comment=Windows 11 styled modern Linux clipboard history manager
+Exec=/home/shakib/Desktop/clipboard/target/release/clipboard-manager --daemon
+Icon=edit-paste
+Terminal=false
+Categories=Utility;Application;
+StartupNotify=false
+X-GNOME-Autostart-enabled=true
+X-Cinnamon-Autostart-enabled=true

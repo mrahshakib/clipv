@@ -1,0 +1,26 @@
+[package]
+name = "clipboard-manager"
+version = "0.1.0"
+edition = "2021"
+description = "Windows 11 styled high-performance Linux clipboard manager"
+
+[dependencies]
+iced = { version = "0.14.0", default-features = false, features = ["tiny-skia", "image", "svg", "advanced", "tokio", "x11", "wayland", "crisp", "web-colors"] }
+arboard = { version = "3.4.1", features = ["image-data"] }
+rusqlite = { version = "0.32.1", features = ["bundled"] }
+global-hotkey = "0.8.0"
+ksni = { version = "0.3.6", features = ["blocking"] }
+enigo = { version = "0.6.1", features = ["x11rb"] }
+image = { version = "0.25.10", default-features = false, features = ["png", "jpeg"] }
+sha2 = "0.10.8"
+chrono = "0.4.40"
+dirs = "6.0.0"
+crossbeam-channel = "0.5.15"
+tokio = { version = "1.44", features = ["sync", "time", "rt-multi-thread"] }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+strip = true
