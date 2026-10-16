@@ -20,8 +20,12 @@ use ui::ClipboardApp;
 fn main() -> iced::Result {
     // 0. Single instance & CLI toggle / daemon management
     let args: Vec<String> = std::env::args().collect();
-    let is_toggle = args.iter().any(|a| a == "--toggle" || a == "-t" || a == "toggle");
-    let is_daemon = args.iter().any(|a| a == "--daemon" || a == "-d" || a == "--background" || a == "-b");
+    let is_toggle = args
+        .iter()
+        .any(|a| a == "--toggle" || a == "-t" || a == "toggle");
+    let is_daemon = args
+        .iter()
+        .any(|a| a == "--daemon" || a == "-d" || a == "--background" || a == "-b");
 
     if is_toggle {
         if try_send_toggle_ipc() {

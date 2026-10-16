@@ -14,8 +14,7 @@ use iced::widget::{
 };
 use iced::window::{self, Mode};
 use iced::{
-    Alignment, Background, Border, Color, Element, Event, Length, Shadow,
-    Subscription, Task,
+    Alignment, Background, Border, Color, Element, Event, Length, Shadow, Subscription, Task,
 };
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -24,13 +23,13 @@ const SEARCH_INPUT_ID: &str = "clipboard_search_input";
 const SCROLLABLE_ID: &str = "clipboard_scrollable";
 
 // Windows 11 Fluent Dark Palette
-const BG_DARK: Color = Color::from_rgb(0.12, 0.12, 0.12);         // #1f1f1f
-const CARD_BG: Color = Color::from_rgb(0.17, 0.17, 0.17);         // #2b2b2b
-const CARD_HOVER_BG: Color = Color::from_rgb(0.22, 0.22, 0.22);   // #383838
-const BORDER_COLOR: Color = Color::from_rgb(0.24, 0.24, 0.24);    // #3c3c3c
-const ACCENT_COLOR: Color = Color::from_rgb(0.0, 0.47, 0.83);     // #0078d4
-const TEXT_MUTED: Color = Color::from_rgb(0.65, 0.65, 0.65);      // #a6a6a6
-const PINNED_BADGE: Color = Color::from_rgb(0.10, 0.35, 0.60);    // Pinned highlight
+const BG_DARK: Color = Color::from_rgb(0.12, 0.12, 0.12); // #1f1f1f
+const CARD_BG: Color = Color::from_rgb(0.17, 0.17, 0.17); // #2b2b2b
+const CARD_HOVER_BG: Color = Color::from_rgb(0.22, 0.22, 0.22); // #383838
+const BORDER_COLOR: Color = Color::from_rgb(0.24, 0.24, 0.24); // #3c3c3c
+const ACCENT_COLOR: Color = Color::from_rgb(0.0, 0.47, 0.83); // #0078d4
+const TEXT_MUTED: Color = Color::from_rgb(0.65, 0.65, 0.65); // #a6a6a6
+const PINNED_BADGE: Color = Color::from_rgb(0.10, 0.35, 0.60); // Pinned highlight
 
 /// Reliably forces X11 / Cinnamon window manager to activate and focus the Clipboard History window,
 /// while keeping it hidden from the taskbar, dock, and Alt+Tab window pager.
@@ -39,7 +38,12 @@ pub fn activate_window_focus() {
         for delay in [15, 50, 100] {
             std::thread::sleep(Duration::from_millis(delay));
             let _ = std::process::Command::new("wmctrl")
-                .args(["-r", "Clipboard History", "-b", "add,skip_taskbar,skip_pager"])
+                .args([
+                    "-r",
+                    "Clipboard History",
+                    "-b",
+                    "add,skip_taskbar,skip_pager",
+                ])
                 .output();
             let _ = std::process::Command::new("xprop")
                 .args([
@@ -148,21 +152,31 @@ impl ClipboardApp {
         };
 
         let init_task = if start_hidden {
-            Task::batch(vec![
-                window::latest().map(|opt| {
-                    if let Some(id) = opt {
-                        Message::WindowEvent(id, window::Event::Opened { position: None, size: iced::Size::ZERO })
-                    } else {
-                        Message::Tick
-                    }
-                }),
-            ])
+            Task::batch(vec![window::latest().map(|opt| {
+                if let Some(id) = opt {
+                    Message::WindowEvent(
+                        id,
+                        window::Event::Opened {
+                            position: None,
+                            size: iced::Size::ZERO,
+                        },
+                    )
+                } else {
+                    Message::Tick
+                }
+            })])
         } else {
             activate_window_focus();
             Task::batch(vec![
                 window::latest().map(|opt| {
                     if let Some(id) = opt {
-                        Message::WindowEvent(id, window::Event::Opened { position: None, size: iced::Size::ZERO })
+                        Message::WindowEvent(
+                            id,
+                            window::Event::Opened {
+                                position: None,
+                                size: iced::Size::ZERO,
+                            },
+                        )
                     } else {
                         Message::Tick
                     }
@@ -200,15 +214,14 @@ impl ClipboardApp {
                     window::Event::Unfocused => {
                         self.is_focused = false;
                         // Auto-hide when losing focus, ignoring spurious unfocus during initial window mapping (first 250ms)
-                        if self.is_visible && self.last_shown.elapsed() > Duration::from_millis(250) {
+                        if self.is_visible && self.last_shown.elapsed() > Duration::from_millis(250)
+                        {
                             Task::done(Message::HideWindow)
                         } else {
                             Task::none()
                         }
                     }
-                    window::Event::CloseRequested => {
-                        Task::done(Message::HideWindow)
-                    }
+                    window::Event::CloseRequested => Task::done(Message::HideWindow),
                     _ => Task::none(),
                 }
             }
@@ -270,7 +283,10 @@ impl ClipboardApp {
                 // If the window is currently visible AND focused, Super+V dismisses it.
                 // In all other cases (window hidden, lost focus, or user was working in another app),
                 // Super+V MUST ALWAYS show and focus the window immediately on the single press!
-                if self.is_visible && self.is_focused && self.last_shown.elapsed() > Duration::from_millis(150) {
+                if self.is_visible
+                    && self.is_focused
+                    && self.last_shown.elapsed() > Duration::from_millis(150)
+                {
                     Task::done(Message::HideWindow)
                 } else {
                     Task::done(Message::ShowWindow)
@@ -359,9 +375,7 @@ impl ClipboardApp {
                 self.show_clear_confirm = false;
                 Task::none()
             }
-            Message::FocusSearchInput => {
-                iced::widget::operation::focus(Id::new(SEARCH_INPUT_ID))
-            }
+            Message::FocusSearchInput => iced::widget::operation::focus(Id::new(SEARCH_INPUT_ID)),
             Message::SelectNext => {
                 if self.items.is_empty() {
                     return Task::none();
@@ -389,7 +403,10 @@ impl ClipboardApp {
                     let ratio = (next_idx - 2) as f32 / (total.saturating_sub(3).max(1) as f32);
                     iced::widget::operation::snap_to(
                         Id::new(SCROLLABLE_ID),
-                        iced::widget::operation::RelativeOffset { x: 0.0, y: ratio.clamp(0.0, 1.0) },
+                        iced::widget::operation::RelativeOffset {
+                            x: 0.0,
+                            y: ratio.clamp(0.0, 1.0),
+                        },
                     )
                 }
             }
@@ -414,10 +431,14 @@ impl ClipboardApp {
                             )
                         } else {
                             let total = self.items.len();
-                            let ratio = (prev_idx - 2) as f32 / (total.saturating_sub(3).max(1) as f32);
+                            let ratio =
+                                (prev_idx - 2) as f32 / (total.saturating_sub(3).max(1) as f32);
                             iced::widget::operation::snap_to(
                                 Id::new(SCROLLABLE_ID),
-                                iced::widget::operation::RelativeOffset { x: 0.0, y: ratio.clamp(0.0, 1.0) },
+                                iced::widget::operation::RelativeOffset {
+                                    x: 0.0,
+                                    y: ratio.clamp(0.0, 1.0),
+                                },
                             )
                         }
                     }
@@ -451,7 +472,10 @@ impl ClipboardApp {
             window::events().map(|(id, ev)| Message::WindowEvent(id, ev)),
             // Intercept keyboard shortcuts (Arrow keys, Enter, Esc, Delete, Tab) even when input is focused
             iced::event::listen_with(|event, status, _window_id| {
-                if let Event::Keyboard(iced::keyboard::Event::KeyPressed { key, modifiers, .. }) = event {
+                if let Event::Keyboard(iced::keyboard::Event::KeyPressed {
+                    key, modifiers, ..
+                }) = event
+                {
                     match key {
                         Key::Named(Named::Escape) => Some(Message::HideWindow),
                         Key::Named(Named::ArrowDown) => Some(Message::SelectNext),
@@ -557,7 +581,9 @@ impl ClipboardApp {
             .padding([3, 10])
             .style(|_theme, status| button::Style {
                 background: match status {
-                    button::Status::Hovered => Some(Background::Color(Color::from_rgb(0.8, 0.2, 0.2))),
+                    button::Status::Hovered => {
+                        Some(Background::Color(Color::from_rgb(0.8, 0.2, 0.2)))
+                    }
                     _ => Some(Background::Color(Color::from_rgb(0.65, 0.15, 0.15))),
                 },
                 text_color: Color::WHITE,
@@ -677,9 +703,7 @@ impl ClipboardApp {
             return self.view_empty_state();
         }
 
-        let mut cards_col = column![]
-            .spacing(8)
-            .width(Length::Fill);
+        let mut cards_col = column![].spacing(8).width(Length::Fill);
 
         for (idx, item) in self.items.iter().enumerate() {
             let is_selected = self.selected_index == Some(idx);
@@ -693,7 +717,8 @@ impl ClipboardApp {
             .style(|theme, status| {
                 let mut style = scrollable::default(theme, status);
                 style.vertical_rail.background = None;
-                style.vertical_rail.scroller.background = Color::from_rgba(0.4, 0.4, 0.4, 0.6).into();
+                style.vertical_rail.scroller.background =
+                    Color::from_rgba(0.4, 0.4, 0.4, 0.6).into();
                 style
             })
             .into()
@@ -718,15 +743,15 @@ impl ClipboardApp {
                         _ => None,
                     }
                 },
-                text_color: if is_pinned {
-                    Color::WHITE
-                } else {
-                    TEXT_MUTED
-                },
+                text_color: if is_pinned { Color::WHITE } else { TEXT_MUTED },
                 border: Border {
                     radius: Radius::from(4.0),
                     width: if is_pinned { 1.0 } else { 0.0 },
-                    color: if is_pinned { ACCENT_COLOR } else { Color::TRANSPARENT },
+                    color: if is_pinned {
+                        ACCENT_COLOR
+                    } else {
+                        Color::TRANSPARENT
+                    },
                 },
                 shadow: Shadow::default(),
                 snap: true,
@@ -738,7 +763,9 @@ impl ClipboardApp {
             .padding([3, 7])
             .style(|_theme, status| button::Style {
                 background: match status {
-                    button::Status::Hovered => Some(Background::Color(Color::from_rgb(0.35, 0.15, 0.15))),
+                    button::Status::Hovered => {
+                        Some(Background::Color(Color::from_rgb(0.35, 0.15, 0.15)))
+                    }
                     _ => None,
                 },
                 text_color: TEXT_MUTED,
@@ -783,21 +810,22 @@ impl ClipboardApp {
                 }
 
                 if let (Some(w), Some(h)) = (item.image_width, item.image_height) {
-                    let badge = container(
-                        text(format!("{} × {}", w, h)).size(10).color(Color::WHITE),
-                    )
-                    .padding([2, 6])
-                    .style(|_theme| container::Style {
-                        text_color: Some(Color::WHITE),
-                        background: Some(Background::Color(Color::from_rgba(0.0, 0.0, 0.0, 0.65))),
-                        border: Border {
-                            radius: Radius::from(4.0),
-                            width: 0.0,
-                            color: Color::TRANSPARENT,
-                        },
-                        shadow: Shadow::default(),
-                        snap: true,
-                    });
+                    let badge =
+                        container(text(format!("{} × {}", w, h)).size(10).color(Color::WHITE))
+                            .padding([2, 6])
+                            .style(|_theme| container::Style {
+                                text_color: Some(Color::WHITE),
+                                background: Some(Background::Color(Color::from_rgba(
+                                    0.0, 0.0, 0.0, 0.65,
+                                ))),
+                                border: Border {
+                                    radius: Radius::from(4.0),
+                                    width: 0.0,
+                                    color: Color::TRANSPARENT,
+                                },
+                                shadow: Shadow::default(),
+                                snap: true,
+                            });
                     img_col = img_col.push(badge);
                 }
 
@@ -819,9 +847,7 @@ impl ClipboardApp {
             })
             .on_press(Message::SelectAndPaste(item_clone));
 
-        let card_inner = column![clickable_body, bottom_row]
-            .spacing(8)
-            .padding(10);
+        let card_inner = column![clickable_body, bottom_row].spacing(8).padding(10);
 
         // Stable, consistent card container:
         // Background is always consistent dark CARD_BG.

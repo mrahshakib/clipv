@@ -52,8 +52,7 @@ pub struct ClipboardItem {
 impl ClipboardItem {
     /// Formats the creation timestamp into a user-friendly relative or local time string.
     pub fn formatted_time(&self) -> String {
-        let dt = DateTime::from_timestamp_millis(self.created_at)
-            .unwrap_or_else(|| Utc::now());
+        let dt = DateTime::from_timestamp_millis(self.created_at).unwrap_or_else(Utc::now);
         let local_dt: DateTime<Local> = DateTime::from(dt);
         let now = Local::now();
         let diff = now.signed_duration_since(local_dt);
@@ -152,7 +151,8 @@ impl Database {
     pub fn new_in_memory() -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         let conn = Connection::open_in_memory()?;
         Self::init_schema(&conn)?;
-        let temp_dir = std::env::temp_dir().join(format!("clipboard-manager-test-{}", std::process::id()));
+        let temp_dir =
+            std::env::temp_dir().join(format!("clipboard-manager-test-{}", std::process::id()));
         let _ = fs::create_dir_all(&temp_dir);
         Ok(Database {
             conn: Arc::new(Mutex::new(conn)),
@@ -170,7 +170,11 @@ impl Database {
     /// Inserts or bumps a text entry. If it already exists, updates its timestamp and preserves pin status.
     /// Generates a clean preview truncated safely without UTF-8 boundary panics.
     fn generate_text_preview(text: &str) -> String {
-        let lines: Vec<&str> = text.lines().map(|l| l.trim()).filter(|l| !l.is_empty()).collect();
+        let lines: Vec<&str> = text
+            .lines()
+            .map(|l| l.trim())
+            .filter(|l| !l.is_empty())
+            .collect();
         let combined = if lines.len() > 3 {
             format!("{}\n{}\n{}...", lines[0], lines[1], lines[2])
         } else {
@@ -189,7 +193,10 @@ impl Database {
     }
 
     /// Inserts or bumps a text entry. If it already exists, updates its timestamp and preserves pin status.
-    pub fn insert_or_update_text(&self, text: &str) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
+    pub fn insert_or_update_text(
+        &self,
+        text: &str,
+    ) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
         if text.trim().is_empty() {
             return Ok(0);
         }
@@ -209,13 +216,7 @@ impl Database {
              ON CONFLICT(hash) DO UPDATE SET
                 created_at = excluded.created_at,
                 preview_text = excluded.preview_text;",
-            params![
-                ContentType::Text.as_str(),
-                text,
-                preview,
-                hash,
-                now,
-            ],
+            params![ContentType::Text.as_str(), text, preview, hash, now,],
         )?;
 
         let id = conn.last_insert_rowid();
@@ -235,7 +236,7 @@ impl Database {
     ) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
         let hash = Self::compute_hash(rgba_bytes);
         let now = Utc::now().timestamp_millis();
-        let image_file = self.images_dir.join(format!("{}.png", &hash));
+        let image_file = self.images_dir.join(format!("{}.png", hash));
 
         // Save image to file if not already saved
         if !image_file.exists() {
@@ -274,7 +275,10 @@ impl Database {
     }
 
     /// Retrieves history items, filtered by optional search query and ordered by pinned DESC, created_at DESC.
-    pub fn get_items(&self, query: &str) -> Result<Vec<ClipboardItem>, Box<dyn std::error::Error + Send + Sync>> {
+    pub fn get_items(
+        &self,
+        query: &str,
+    ) -> Result<Vec<ClipboardItem>, Box<dyn std::error::Error + Send + Sync>> {
         let conn = self.get_conn();
         let query_trimmed = query.trim();
 
@@ -364,7 +368,9 @@ impl Database {
 
         // Check if item has an image to delete from disk
         let mut stmt = conn.prepare("SELECT image_path FROM clipboard_history WHERE id = ?1;")?;
-        let image_path: Option<String> = stmt.query_row(params![id], |row| row.get(0)).unwrap_or(None);
+        let image_path: Option<String> = stmt
+            .query_row(params![id], |row| row.get(0))
+            .unwrap_or(None);
 
         conn.execute("DELETE FROM clipboard_history WHERE id = ?1;", params![id])?;
 
@@ -392,16 +398,18 @@ impl Database {
             }
         }
 
-        let deleted_count = conn.execute(
-            "DELETE FROM clipboard_history WHERE is_pinned = 0;",
-            [],
-        )?;
+        let deleted_count =
+            conn.execute("DELETE FROM clipboard_history WHERE is_pinned = 0;", [])?;
 
         Ok(deleted_count)
     }
 
     /// Prunes oldest unpinned items if total unpinned items exceeds `max_items`.
-    fn prune_unpinned_locked(&self, conn: &Connection, max_items: usize) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    fn prune_unpinned_locked(
+        &self,
+        conn: &Connection,
+        max_items: usize,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let count: i64 = conn.query_row(
             "SELECT COUNT(*) FROM clipboard_history WHERE is_pinned = 0;",
             [],

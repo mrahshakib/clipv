@@ -48,7 +48,8 @@ pub fn try_send_toggle_ipc() -> bool {
 pub fn ensure_cinnamon_shortcut() {
     let desktop = std::env::var("XDG_CURRENT_DESKTOP").unwrap_or_default();
     let session = std::env::var("DESKTOP_SESSION").unwrap_or_default();
-    let is_cinnamon = desktop.to_lowercase().contains("cinnamon") || session.to_lowercase().contains("cinnamon");
+    let is_cinnamon =
+        desktop.to_lowercase().contains("cinnamon") || session.to_lowercase().contains("cinnamon");
 
     if !is_cinnamon {
         return;
@@ -71,7 +72,9 @@ pub fn ensure_cinnamon_shortcut() {
     };
 
     let mut custom_ids: Vec<String> = Vec::new();
-    let trimmed = list_str.trim_start_matches("@as ").trim_matches(|c| c == '[' || c == ']');
+    let trimmed = list_str
+        .trim_start_matches("@as ")
+        .trim_matches(|c| c == '[' || c == ']');
     if !trimmed.trim().is_empty() {
         for item in trimmed.split(',') {
             let id = item.trim().trim_matches('\'').trim_matches('"');
@@ -133,15 +136,39 @@ pub fn ensure_cinnamon_shortcut() {
     // We alternate with `__dummy__` to guarantee the changed signal fires and Cinnamon reloads.
     let mut dummy_list = custom_ids.clone();
     dummy_list.push("__dummy__".to_string());
-    let formatted_dummy = format!("[{}]", dummy_list.iter().map(|s| format!("'{s}'")).collect::<Vec<_>>().join(", "));
-    let formatted_final = format!("[{}]", custom_ids.iter().map(|s| format!("'{s}'")).collect::<Vec<_>>().join(", "));
+    let formatted_dummy = format!(
+        "[{}]",
+        dummy_list
+            .iter()
+            .map(|s| format!("'{s}'"))
+            .collect::<Vec<_>>()
+            .join(", ")
+    );
+    let formatted_final = format!(
+        "[{}]",
+        custom_ids
+            .iter()
+            .map(|s| format!("'{s}'"))
+            .collect::<Vec<_>>()
+            .join(", ")
+    );
 
     let _ = std::process::Command::new("gsettings")
-        .args(["set", "org.cinnamon.desktop.keybindings", "custom-list", &formatted_dummy])
+        .args([
+            "set",
+            "org.cinnamon.desktop.keybindings",
+            "custom-list",
+            &formatted_dummy,
+        ])
         .output();
 
     let _ = std::process::Command::new("gsettings")
-        .args(["set", "org.cinnamon.desktop.keybindings", "custom-list", &formatted_final])
+        .args([
+            "set",
+            "org.cinnamon.desktop.keybindings",
+            "custom-list",
+            &formatted_final,
+        ])
         .output();
 }
 

@@ -26,11 +26,7 @@ pub struct ClipboardMonitor {
 
 impl ClipboardMonitor {
     /// Spawns the background monitoring thread.
-    pub fn start(
-        db: Arc<Database>,
-        is_paused: Arc<AtomicBool>,
-        notify_tx: Sender<()>,
-    ) {
+    pub fn start(db: Arc<Database>, is_paused: Arc<AtomicBool>, notify_tx: Sender<()>) {
         let monitor = Self {
             db,
             is_paused,
@@ -71,7 +67,7 @@ impl ClipboardMonitor {
                     if hash != last_text_hash {
                         last_text_hash = hash;
                         last_image_hash.clear();
-                        if let Ok(_) = self.db.insert_or_update_text(&text) {
+                        if self.db.insert_or_update_text(&text).is_ok() {
                             let _ = self.notify_tx.send(());
                         }
                     }
@@ -85,11 +81,11 @@ impl ClipboardMonitor {
                 if hash != last_image_hash {
                     last_image_hash = hash;
                     last_text_hash.clear();
-                    if let Ok(_) = self.db.insert_or_update_image(
-                        img.width as u32,
-                        img.height as u32,
-                        &img.bytes,
-                    ) {
+                    if self
+                        .db
+                        .insert_or_update_image(img.width as u32, img.height as u32, &img.bytes)
+                        .is_ok()
+                    {
                         let _ = self.notify_tx.send(());
                     }
                 }
@@ -144,16 +140,15 @@ pub fn simulate_auto_paste() {
         })();
 
         // If enigo had any issue on the specific desktop environment, fallback to xdotool or wtype
-        if enigo_result.is_err() {
-            if Command::new("xdotool")
+        if enigo_result.is_err()
+            && Command::new("xdotool")
                 .args(["key", "--clearmodifiers", "ctrl+v"])
                 .output()
                 .is_err()
-            {
-                let _ = Command::new("wtype")
-                    .args(["-M", "ctrl", "-k", "v", "-m", "ctrl"])
-                    .output();
-            }
+        {
+            let _ = Command::new("wtype")
+                .args(["-M", "ctrl", "-k", "v", "-m", "ctrl"])
+                .output();
         }
     });
 }

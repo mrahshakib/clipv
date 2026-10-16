@@ -77,11 +77,7 @@ impl Tray for ClipboardTray {
 }
 
 /// Initializes and spawns the system tray service in a background worker.
-pub fn start_system_tray(
-    is_paused: Arc<AtomicBool>,
-    toggle_tx: Sender<()>,
-    clear_tx: Sender<()>,
-) {
+pub fn start_system_tray(is_paused: Arc<AtomicBool>, toggle_tx: Sender<()>, clear_tx: Sender<()>) {
     let tray = ClipboardTray {
         is_paused,
         toggle_tx,
